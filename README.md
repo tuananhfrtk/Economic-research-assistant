@@ -1,4 +1,3 @@
-# Economic-research-assistant
 # ECONOMIC RESEARCH ASSISTANT
 
 +Using deepseek, utilize highly technical text from [marxists.org/](http://marxists.org/) economics.
