@@ -1,0 +1,231 @@
+from __future__ import annotations as _annotations
+
+from dataclasses import dataclass
+from dotenv import load_dotenv
+import logfire
+import asyncio
+import httpx
+import os
+
+from pydantic_ai import Agent, ModelRetry, RunContext
+from pydantic_ai.models.openai import OpenAIModel
+from openai import AsyncOpenAI
+from supabase import Client
+from typing import List
+
+# ENV
+
+# Load environment variables
+load_dotenv()
+
+# Use DeepSeek as the default model
+llm = os.getenv("PRIMARY_MODEL", "deepseek-chat")
+
+# Ensure BASE_URL points to Groq API unless otherwise specified
+base_url = os.getenv("BASE_URL", "https://api.groq.com/openai/v1")
+
+# Correct API key assignment
+api_key = os.getenv("LLM_API_KEY", "no-llm-api-key-provided")
+
+# Initialize LLM model
+model = OpenAIModel(llm, base_url=base_url, api_key=api_key)
+
+# Configure Logfire
+logfire.configure(send_to_logfire="if-token-present")
+
+
+# 1. Class of Agentic Teams
+@dataclass
+class EconomicResearchDeps:
+    supabase: Client
+    openai_client: AsyncOpenAI
+    reasoner_output: str
+
+# 2. System Prompt 
+system_prompt = """
+[Roles & Context]
+You are an expert on some classical/marxian theories of economics 
+Now you are focusing on building a robust reasearch plan/proposal.
+You have a comprehensive asscess to the corpus of marxian economics texts from marxists.org,
+and should use it as the references for scientific discoveries
+Let's generate this step by step!
+
+[Core Responsibility & Deliverables]
++Background: Context and significance of the research.
++Objectives: Clearly defined research goals.
++Research Questions/Hypotheses: Specific questions or hypotheses guiding the study.
++Scope: What will and won’t be covered?
++Literature Review 
++Summary of existing research.
++Identification of gaps your study will address.
++Justification for your research based on past studies.
+
+[Interaction Guidelines]
+- Take immediate action without asking for permission
+- Always verify document before implementation
+- Provide honest feedback about document gaps
+- Include specific enhancement suggestions
+- Request user feedback on implementations
+- Maintain code consistency across file
+"""
+# 3. Economic Researcher
+econ_researcher = Agent(
+    model,
+    system_prompt=system_prompt,
+    deps_type=EconomicResearchDeps,
+    retries=2
+)
+# 4. INSTRUCTION FROM LLM
+@econ_researcher.system_prompt  
+def add_reasoner_output(ctx: RunContext[str]) -> str:
+    return f"""
+    \n\nAdditional thoughts/instructions from the reasoner LLM. 
+    This scope includes texts for you to search as well: 
+    {ctx.deps.reasoner_output}
+    """
+
+# 1. GET EMBEDDINGS VECTOR FROM OPENAI
+
+async def get_embedding(text: str, openai_client: AsyncOpenAI) -> List[float]:
+    """Get embedding vector from OpenAI."""
+    try:
+        response = await openai_client.embeddings.create(
+            model="text-embedding-3-small",
+            input=text
+        )
+        return response.data[0].embedding
+    except Exception as e:
+        print(f"Error getting embedding: {e}")
+        return [0] * 1536  # Return zero vector on error
+    
+# 2. Retrieve relevant document chunks based on the query with RAG.
+
+@econ_researcher.tool
+async def retrieve_relevant_document(ctx: RunContext[EconomicResearchDeps], user_query: str) -> str:
+    """
+    Retrieve relevant document chunks based on the query with RAG.
+    
+    Args:
+        ctx: The context including the Supabase client and OpenAI client
+        user_query: The user's question or query
+        
+    Returns:
+        A formatted string containing the top 5 most relevant document chunks
+    """
+    try:
+        # Get the embedding for the query
+        query_embedding = await get_embedding(user_query, ctx.deps.openai_client)
+        
+        # Query Supabase for relevant documents
+        result = ctx.deps.supabase.rpc(
+            'match_site_pages',
+            {
+                'query_embedding': query_embedding,
+                'match_count': 5,
+                'filter': {'source': 'economic_assistant_docs'}
+            }
+        ).execute()
+        
+        if not result.data:
+            return "No relevant document found."
+            
+        # Format the results
+        formatted_chunks = []
+        for doc in result.data:
+            chunk_text = f"""
+# {doc['title']}
+
+{doc['content']}
+"""
+            formatted_chunks.append(chunk_text)
+            
+        # Join all chunks with a separator
+        return "\n\n---\n\n".join(formatted_chunks)
+        
+    except Exception as e:
+        print(f"Error retrieving document: {e}")
+        return f"Error retrieving document {str(e)}"
+    
+
+# 3. retrieve a list of all available archive pages.
+
+async def list_document_pages_helper(supabase: Client) -> List[str]:
+    """
+    Function to retrieve a list of all available economic document pages.
+    This is called by the list_document_pages tool and also externally to fetch document pages for the reasoner LLM.
+    
+    Returns:
+        List[str]: List of unique URLs for all document pages
+    """
+    try:
+        # Query Supabase for unique URLs where source is economic_assistant_docs
+        result = supabase.from_('site_pages') \
+            .select('url') \
+            .eq('metadata->>source', 'economic_assistant_docs') \
+            .execute()
+        
+        if not result.data:
+            return []
+            
+        # Extract unique URLs
+        urls = sorted(set(doc['url'] for doc in result.data))
+        return urls
+        
+    except Exception as e:
+        print(f"Error retrieving document pages: {e}")
+        return [] 
+    
+#  4. Retrieve a list of all available Economics document pages.
+
+@econ_researcher.tool
+async def list_document_pages(ctx: RunContext[EconomicResearchDeps]) -> List[str]:
+    """
+    Retrieve a list of all available economic document pages.
+    
+    Returns:
+        List[str]: List of unique URLs for all document pages
+    """
+    return await list_document_pages_helper(ctx.deps.supabase)
+
+
+# 5. Retrieve the full content of a specific document page by combining all its chunks.
+
+@econ_researcher.tool
+async def get_page_content(ctx: RunContext[EconomicResearchDeps], url: str) -> str:
+    """
+    Retrieve the full content of a specific document page by combining all its chunks.
+    
+    Args:
+        ctx: The context including the Supabase client
+        url: The URL of the page to retrieve
+        
+    Returns:
+        str: The complete page content with all chunks combined in order
+    """
+    try:
+        # Query Supabase for all chunks of this URL, ordered by chunk_number
+        result = ctx.deps.supabase.from_('site_pages') \
+            .select('title, content, chunk_number') \
+            .eq('url', url) \
+            .eq('metadata->>source', 'economic_assistant_docs') \
+            .order('chunk_number') \
+            .execute()
+        
+        if not result.data:
+            return f"No content found for URL: {url}"
+            
+        # Format the page with its title and all chunks
+        page_title = result.data[0]['title'].split(' - ')[0]  # Get the main title
+        formatted_content = [f"# {page_title}\n"]
+        
+        # Add each chunk's content
+        for chunk in result.data:
+            formatted_content.append(chunk['content'])
+            
+        # Join everything together
+        return "\n\n".join(formatted_content)
+        
+    except Exception as e:
+        print(f"Error retrieving page content: {e}")
+        return f"Error retrieving page content: {str(e)}"
+    
