@@ -1,19 +1,21 @@
 # Economic-research-assistant
-# Archon V2 - Agentic Workflow for Building Pydantic AI Agents
+# ECONOMIC RESEARCH ASSISTANT
 
-This is the second iteration of the Archon project, building upon V1 by introducing LangGraph for a full agentic workflow. The system starts with a reasoning LLM (like O3-mini or R1) that analyzes user requirements and documentation to create a detailed scope, which then guides specialized coding and routing agents in generating high-quality Pydantic AI agents.
-
-An intelligent documentation crawler and RAG (Retrieval-Augmented Generation) system built using Pydantic AI, LangGraph, and Supabase that is capable of building other Pydantic AI agents. The system crawls the Pydantic AI documentation, stores content in a vector database, and provides Pydantic AI agent code by retrieving and analyzing relevant documentation chunks.
-
-This version also supports local LLMs with Ollama for the main agent and reasoning LLM.
-
-Note that we are still relying on OpenAI for embeddings no matter what, but future versions of Archon will change that.
++Using deepseek, utilize highly technical text from [marxists.org/](http://marxists.org/) economics.
++ develop an intelligent Agentic RAG system that can pull information precisely from text and help the assistant
++ to performing tasks that is very close to the actual content of the corpus.
++ advanced chunking and embedding techniques
++Use Supabase as a vector database
++Develop a agentic pipeline that help user critique the response of the assitant and provide meaningful feedback that in turn 
++Deepseek & Groq
++LLM-powered with structured prompting system as well as specialized agent that direct the flow of thinking from it
++This version also supports local LLMs with Ollama for the main agent and reasoning LLM.
 
 ## Features
 
-- Multi-agent workflow using LangGraph
-- Specialized agents for reasoning, routing, and coding
-- Pydantic AI documentation crawling and chunking
+- Agentic workflow orchestrated by Langraph
+- Specialized agents for reasoning and dictate the workflow
+- Marxian/classical economics crawling and chunking
 - Vector database storage with Supabase
 - Semantic search using OpenAI embeddings
 - RAG-based question answering
@@ -24,15 +26,14 @@ Note that we are still relying on OpenAI for embeddings no matter what, but futu
 
 - Python 3.11+
 - Supabase account and database
-- OpenAI/OpenRouter API key or Ollama for local LLMs
+- Groq API Key for Cloud based LLMs or  Ollama for local LLMs
 - Streamlit (for web interface)
 
 ## Installation
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/coleam00/archon.git
-cd archon/iterations/v2-agentic-workflow
+git clone [https://github.com/coleam00/archon.git](https://github.com/tuananhfrtk/Economic-research-assistant.git)
 ```
 
 2. Install dependencies (recommended to use a Python virtual environment):
@@ -71,7 +72,7 @@ In Supabase, do this by going to the "SQL Editor" tab and pasting in the SQL int
 To crawl and store documentation in the vector database:
 
 ```bash
-python crawl_pydantic_ai_docs.py
+python crawl_econ.py
 ```
 
 This will:
@@ -121,13 +122,11 @@ CREATE TABLE site_pages (
 
 ## Project Structure
 
-- `archon_graph.py`: LangGraph workflow definition and agent coordination
-- `pydantic_ai_coder.py`: Main coding agent with RAG capabilities
-- `crawl_pydantic_ai_docs.py`: Documentation crawler and processor
+- `econ_research_graph.py`: LangGraph workflow definition and agent coordination
+- `econ_researcher.py`: Main coding agent with RAG capabilities
+- `crawl_econ.py`: Documentation crawler and processor
 - `streamlit_ui.py`: Web interface with streaming support
 - `site_pages.sql`: Database setup commands
 - `requirements.txt`: Project dependencies
 
-## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
