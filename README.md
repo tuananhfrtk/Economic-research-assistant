@@ -1,14 +1,16 @@
 # ECONOMIC RESEARCH ASSISTANT
 
-+Using deepseek, utilize highly technical text from [marxists.org/](http://marxists.org/) economics.
++ Using deepseek, utilize highly technical text from [marxists.org/](http://marxists.org/) economics.
+
 + develop an intelligent Agentic RAG system that can pull information precisely from text and help the assistant
 + to performing tasks that is very close to the actual content of the corpus.
 + advanced chunking and embedding techniques
-+Use Supabase as a vector database
-+Develop a agentic pipeline that help user critique the response of the assitant and provide meaningful feedback that in turn 
-+Deepseek & Groq
-+LLM-powered with structured prompting system as well as specialized agent that direct the flow of thinking from it
-+This version also supports local LLMs with Ollama for the main agent and reasoning LLM.
+
++ Use Supabase as a vector database
++ Develop a agentic pipeline that help user critique the response of the assitant and provide meaningful feedback that in turn 
++ Deepseek & Groq
++ LLM-powered with structured prompting system as well as specialized agent that direct the flow of thinking from it
++ This version also supports local LLMs with Ollama for the main agent and reasoning LLM.
 
 ## Features
 
