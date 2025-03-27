@@ -1,17 +1,7 @@
 # ECONOMIC RESEARCH ASSISTANT
 
-An Agentic RAG chatbot assistant built to deeply engage with Marxian economics. This project leverages DeepSeek, Groq, and local LLMs (via Ollama) to provide highly precise, context-aware responses from texts sourced from marxists.org.
+An Agentic RAG assistant designed for deep engagement with Marxian economics. Powered by DeepSeek, Groq, and local LLMs via Ollama, it retrieves and processes highly technical texts with precision. Using Supabase for vector storage, advanced chunking, and structured prompting, it ensures accurate and context-aware responses. Built with a multi-agent pipeline, it not only answers but also critiques and refines its reasoning dynamically.
 
-Key Features:
-Advanced RAG Pipeline – Uses Supabase as a vector database, with optimized chunking and embedding techniques for improved retrieval.
-
-Structured Prompting & Multi-Agent Reasoning – A specialized agent framework directs the assistant’s thought process for accurate and coherent outputs.
-
-Critique & Feedback Loop – Users can challenge responses, prompting the system to refine its reasoning dynamically.
-
-Local & Cloud LLM Support – Run with DeepSeek/Groq or locally with Ollama for the core agent and reasoning LLM.
-
-This project aims to develop an AI that doesn’t just retrieve information but engages in meaningful analysis, critique, and structured reasoning—true to the depth of its source material.
 
 ## Features
 
