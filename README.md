@@ -25,7 +25,7 @@ An Agentic RAG assistant designed for deep engagement with Marxian economics. Po
 
 1. Clone the repository:
 ```bash
-git clone [https://github.com/coleam00/archon.git](https://github.com/tuananhfrtk/Economic-research-assistant.git)
+git clone [https://github.com/tuananhfrtk/Economic-research-assistant.git]
 ```
 
 2. Install dependencies (recommended to use a Python virtual environment):
