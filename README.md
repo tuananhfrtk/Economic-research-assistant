@@ -1,6 +1,7 @@
 # ECONOMIC RESEARCH ASSISTANT
 
 An Agentic RAG assistant designed for deep engagement with Marxian economics. Powered by DeepSeek, Groq, and local LLMs via Ollama, it retrieves and processes highly technical texts with precision. Using Supabase for vector storage, advanced chunking, and structured prompting, it ensures accurate and context-aware responses. Built with a multi-agent pipeline, it not only answers but also critiques and refines its reasoning dynamically.
+![Demo](media/screen.gif)
 
 
 ## Features
